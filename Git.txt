@@ -1,0 +1,345 @@
+Git总结
+第一部分.基本操作
+1.查看Git版本
+git --version
+
+2.进入要管理的文件夹，打开Git终端，创建仓库
+git init
+
+3.检测当前文件夹下文件的状态
+git status
+文件状态：
+    工作区：已控制文件；红色：新增文件、修改了的老文件
+    暂存区：绿色：git 已经管理的文件
+    版本库：生成了版本的：git status 查询不到了
+
+4.添加要管理的文件：将工作区文件添加到暂存区
+git add filename
+
+5.将未管理的文件全部管理
+git add .
+
+6.生成第一个版本：将暂存区提交到版本库
+git commit -m "v1"
+
+7.修改文件后生成新版本
+git add .
+git commit -m "v2"
+
+8.查看版本记录
+git log
+git log --graph
+git log --graph --pretty -format:"%h %s"
+
+9.个人信息配置 防止首次提交时报错
+用户名：
+git config --global user.name "your name"
+邮箱：
+git config --global user.email "your email"
+
+10.版本回滚
+git reset --hard 版本号（前七位即可）
+
+11.版本回滚至之后的版本
+git log 只能查询到当前版本及其之前的版本
+使用如下命令查询版本回滚情况得到版本号：
+git reflog
+
+12.工作区、暂存区、版本库之间的来回调整
+工作区到暂存区：
+git add filename
+git add .
+git add -A
+
+暂存区到版本库：
+git commit -m "vn"
+
+版本之间的回滚切换：
+git log
+git reflog
+git reset --hard 版本号
+
+版本库到暂存区：
+git reset --soft
+
+暂存区到工作区：
+git reset HEAD filename
+
+已修改文件到版本库：
+git checkout -- filename
+
+第二部分.分支
+分支之间代码隔离，互不影响
+
+14.线上Bug如和修复
+创建新分支Bug，修复后合并到master分支
+git branch bug
+
+15.查看当前所处分支
+git branch
+
+16.创建新分支
+git branch newBranchName
+开发新功能：
+git branch dev
+
+17.切换分支
+git checkout branchName
+
+18.合并分支
+切换回master:
+git checkout master
+合并修改了Bug的bug分支:
+git merge bug
+
+19.删除分支
+git branch -d branchName
+
+20.合并多个分支可能产生冲突
+合并dev分支时可能与bug分支产生了冲突
+根据提示去手动解决冲突
+然后再提交生成新版本库
+
+21.工作流
+简单工作流：
+master保留正式稳定版本
+development分支做开发，稳定了合并到master
+
+第三部分.Github
+github注册账号
+创建远程仓库（名称最好与本地项目名称一致）
+创建本地仓库并推送到github
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/...
+git push -u origin master
+如果已经有了本地仓库就直接写下两条
+git remote add origin https://github.com/...
+git push -u origin master
+
+23.给远程仓库起别名
+git remote add origin https://github.com/...
+
+24.向远程仓库推送代码
+git push -u origin 分支
+
+25.克隆远程仓库
+git clone 远程仓库地址
+
+26.切换分支
+git checkout 分支
+
+27.到公司开发，将master分支代码合并到dev分支，在dev分支上开发
+git checkout dev
+git merge master（只做一次）
+
+28.在dev分支开发完提交
+git add .
+git commit -m " "
+git push origin dev
+
+29.回家继续开发
+切换到dev分支
+git checkout dev
+将dev分支最新代码拉到本地
+git pull origin dev
+开发完提交
+git add .
+git commit -m " "
+git push origin dev
+
+30.再去公司开发同理
+
+31.开发完毕上线
+切换到master分支
+git checkout master
+本地合并到master
+git merge dev
+推送到远程仓库
+git push origin master
+然后把dev分支也推送上去
+git check dev
+git merge master
+git push origin dev
+
+32.两地开发不同功能，改了同一个或多个文件，合并时产生冲突
+同一文件的两个版本都会给，自己改就行了
+合并完提交推送
+
+33.补充
+git pull origin dev相当于两条命令：
+git fetch origin dev 从远程拉代码到版本库
+git merge origin/dev  将版本库的远程仓库拉来的代码更新到工作区
+
+34。变基rebase使提交记录变得简洁
+三种应用场景：
+    场景一：多个提交记录变成一个提交记录，使提交记录变得简洁
+    mkdir pro_rebase
+    git init
+    git add .
+    git commit -m "v1"
+    git commit -m "v2"
+    git commit -m "v3"
+    git commit -m "v4"
+    git log
+    合并从版本号到当前版本
+    git rebase -i 版本号
+    合并从当前版本开始向前的n个版本为一个
+    git rebase -i n
+    在提示信息把pick改成s表示将该版本合并到它上面的一个版本中去
+    然后可以自己整合一下提交信息
+    注意事项：不要合并提交到了提交到了远程仓库的版本
+
+    场景二：多分支合并不带分叉
+    在dev开发
+    git checkout dev
+    开发完提交
+    git add .
+    git commit -m "dev branch commit 1"
+    在master开发
+    git checkout dev
+    开发完提交
+    git add .
+    git commit -m "master branch commit 1"
+    切回dev分支
+    git checkout dev
+    变基,把master分支内容拷到dev
+    git rebase master
+    在把dev分支合并到master
+    git checkout master
+    git merge dev
+
+    场景三：两地开发不同功能
+    git pull origin dev会产生分支，换为下面的命令
+    git fetch origin dev
+    git rebase origin/dev
+
+注意事项：
+git rebase 过程可能产生冲突
+手动解决冲突后
+git status 看到git rebase进行中，要继续往下走
+git add .
+git rebase --continue
+
+35.beyond compare 快速解决冲突
+安装beyond compare
+在git中配置：
+//local表示只在当前项目生效
+git config --local merge.tool bc3
+git config --local mergetool.path '路径'
+git config --local mergetool.keepBackup false
+解决冲突：
+git mergetool
+
+命令总结:
+添加远程连接
+git remote add origin url
+推送代码
+git push origin branch
+下载代码
+git clone url
+拉代码
+git pull origin branch
+git fetch origin branch
+git merge origin/branch
+变基
+git rebase branch
+记录图形展示
+git log --graph
+git log --graph --pretty -format:"%h %s"
+
+36.多人协作开发
+工作流
+创建项目
+
+版本标签：tag
+git tag -a v1 -m "version 1"
+git push origin --tag
+
+邀请成员
+
+邀请成员参与开发
+project
+settings
+
+代码review
+
+测试上线
+
+为开源项目做贡献
+
+配置文件存放三个文件
+项目配置文件:/.git/config
+git config --local user.name ""
+全局配置文件:~/.gitconfig
+git config --global
+系统配置文件:/etc/.gitconfig
+git config --system
+
+应用场景：
+git config --local user.name "name"
+git config --local user.email "email"
+
+git config --local merge.tool bc3
+git config --local mergetool.path '路径'
+git config --local mergetool.keepBackup false
+
+git免密登录
+url中体现：
+https:userName:password//github.com/...
+ssh实现：
+ssh -keygen
+拷贝公钥，配置到github
+git自动管理凭证：
+
+.gitignore忽略文件
+在.gitignore文件中加入以忽略这些文件
+文件名
+*.h 可以用通配符
+！a.h 加了！的除外，要被管理
+文件夹/
+对不同语言可以在github上搜索.gitignore后
+把对应的.gitignore文件复制过来即可
+更多的参考：https://github.com/gitignore
+
+git做任务管理
+issues 文档及任务管理
+wiki
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
